@@ -1,35 +1,61 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// src/App.jsx
+import React, { useState } from "react";
+import useEmployees from "./hooks/useEmployees";
+import EmployeeForm from "./components/EmployeeForm";
+import Modal from "./components/Modal";
+import EmployeeList from "./components/EmployeeList";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const {
+    loading,
+    error,
+    createEmployee,
+    updateEmployee,
+  } = useEmployees();
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState(null);
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setEditingEmployee(null);
+  };
+
+  const handleSubmit = async (data) => {
+    try {
+      if (editingEmployee) {
+        await updateEmployee(editingEmployee.id, data);
+      } else {
+        await createEmployee(data);
+      }
+      closeModal();
+    } catch (e) {
+      alert(e.message);
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <header className="max-w-6xl mx-auto mb-6 flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-indigo-700">Daftar Karyawan</h1>
+      </header>
 
-export default App
+      {error && <p className="text-center text-red-600 mb-4">{error}</p>}
+
+      <EmployeeList />
+
+      <Modal
+        isOpen={modalOpen}
+        onClose={closeModal}
+        title={editingEmployee ? "Edit Karyawan" : "Tambah Karyawan"}
+      >
+        <EmployeeForm
+          initialData={editingEmployee}
+          onSubmit={handleSubmit}
+          onCancel={closeModal}
+          loading={loading}
+        />
+      </Modal>
+    </div>
+  );
+}
