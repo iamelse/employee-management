@@ -1,7 +1,16 @@
 // src/components/EmployeeTable.jsx
 import React from "react";
 
-export default function EmployeeTable({ employees, onEdit, onDelete, loadingDelete }) {
+export default function EmployeeTable({ employees, onEdit, onDelete, loadingDelete, loading }) {
+  if (loading) {
+    return (
+      <div className="text-center py-10">
+        <div className="inline-block w-8 h-8 border-4 border-indigo-500 border-dashed rounded-full animate-spin"></div>
+        <p className="mt-2 text-gray-600">Memuat data karyawan...</p>
+      </div>
+    );
+  }
+
   if (employees.length === 0) {
     return <p className="text-center text-gray-500 mt-6">Data karyawan tidak ditemukan.</p>;
   }
@@ -21,14 +30,16 @@ export default function EmployeeTable({ employees, onEdit, onDelete, loadingDele
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
-          {employees.items.map(emp => {
+          {employees.map(emp => {
             const job = emp.jobPositions[0] || {};
             const birthYear = new Date(emp.dateOfBirth).getFullYear();
             const age = new Date().getFullYear() - birthYear;
             return (
               <tr key={emp.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 text-sm">{emp.id}</td>
-                <td className="px-4 py-3 text-sm">{[emp.firstName, emp.middleName, emp.lastName].filter(Boolean).join(" ")}</td>
+                <td className="px-4 py-3 text-sm">
+                  {[emp.firstName, emp.middleName, emp.lastName].filter(Boolean).join(" ")}
+                </td>
                 <td className="px-4 py-3 text-sm">{job.jobName || "-"}</td>
                 <td className="px-4 py-3 text-sm">{job.salary ? `Rp ${job.salary.toLocaleString()}` : "-"}</td>
                 <td className="px-4 py-3 text-sm">{job.status || "-"}</td>
@@ -37,7 +48,6 @@ export default function EmployeeTable({ employees, onEdit, onDelete, loadingDele
                   <button
                     onClick={() => onEdit(emp.id)}
                     className="text-indigo-600 hover:text-indigo-900 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded"
-                    aria-label={`Edit ${emp.firstName}`}
                   >
                     Edit
                   </button>
@@ -47,7 +57,6 @@ export default function EmployeeTable({ employees, onEdit, onDelete, loadingDele
                     }}
                     disabled={loadingDelete}
                     className="text-red-600 hover:text-red-900 font-semibold disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-red-500 rounded"
-                    aria-label={`Hapus ${emp.firstName}`}
                   >
                     Hapus
                   </button>

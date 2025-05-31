@@ -4,16 +4,23 @@ import { useEffect, useState } from "react";
 const API_URL = import.meta.env.VITE_API_BASE_URL + "/employees";
 
 export default function useEmployees() {
-  const [employees, setEmployees] = useState([]);
+  const [employees, setEmployees] = useState({
+    items: [],
+    totalItems: 0,
+    pageNumber: 1,
+    pageSize: 10,
+  });
+
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = async (page = 1, search = "") => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(API_URL);
+      const res = await fetch(`${API_URL}?pageNumber=${page}&pageSize=${employees.pageSize}&searchTerm=${search}`);
       if (!res.ok) throw new Error("Gagal mengambil data");
       const data = await res.json();
       setEmployees(data);
@@ -34,7 +41,7 @@ export default function useEmployees() {
         body: JSON.stringify(employeeData),
       });
       if (!res.ok) throw new Error("Gagal menambah data");
-      await fetchEmployees();
+      await fetchEmployees(employees.pageNumber, searchTerm);
     } catch (e) {
       setError(e.message);
       throw e;
@@ -53,7 +60,7 @@ export default function useEmployees() {
         body: JSON.stringify(employeeData),
       });
       if (!res.ok) throw new Error("Gagal mengupdate data");
-      await fetchEmployees();
+      await fetchEmployees(employees.pageNumber, searchTerm);
     } catch (e) {
       setError(e.message);
       throw e;
@@ -68,7 +75,7 @@ export default function useEmployees() {
     try {
       const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Gagal menghapus data");
-      await fetchEmployees();
+      await fetchEmployees(employees.pageNumber, searchTerm);
     } catch (e) {
       setError(e.message);
       throw e;
@@ -77,6 +84,7 @@ export default function useEmployees() {
     }
   };
 
+  // Ambil data awal saat mount
   useEffect(() => {
     fetchEmployees();
   }, []);
@@ -90,5 +98,7 @@ export default function useEmployees() {
     updateEmployee,
     deleteEmployee,
     fetchEmployees,
+    setSearchTerm,
+    searchTerm,
   };
 }
