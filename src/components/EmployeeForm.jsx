@@ -1,150 +1,213 @@
-import React, { useEffect, useState } from 'react';
+// src/components/EmployeeForm.jsx
+import React, { useEffect, useState } from "react";
 
-export default function EmployeeForm({ onSubmit, onCancel, initialData, loading }) {
-  const [firstName, setFirstName] = useState('');
-  const [middleName, setMiddleName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [jobName, setJobName] = useState('');
-  const [salary, setSalary] = useState('');
+const emptyJobPosition = { id: 1, jobName: "", startDate: "", endDate: "", salary: 0, status: "" };
+
+export default function EmployeeForm({ initialData, onSubmit, onCancel, loading }) {
+  const [form, setForm] = useState({
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    dateOfBirth: "",
+    gender: "",
+    address: "",
+    jobPositions: [emptyJobPosition],
+  });
 
   useEffect(() => {
     if (initialData) {
-      setFirstName(initialData.firstName || '');
-      setMiddleName(initialData.middleName || '');
-      setLastName(initialData.lastName || '');
-      setDateOfBirth(initialData.dateOfBirth ? initialData.dateOfBirth.slice(0,10) : ''); // format yyyy-mm-dd
-      if (initialData.jobPositions && initialData.jobPositions.length > 0) {
-        setJobName(initialData.jobPositions[0].jobName || '');
-        setSalary(initialData.jobPositions[0].salary?.toString() || '');
-      } else {
-        setJobName('');
-        setSalary('');
-      }
+      setForm({
+        ...initialData,
+        dateOfBirth: initialData.dateOfBirth?.slice(0, 10) || "",
+        jobPositions: initialData.jobPositions.length ? initialData.jobPositions.map(j => ({
+          ...j,
+          startDate: j.startDate?.slice(0, 10) || "",
+          endDate: j.endDate?.slice(0, 10) || "",
+        })) : [emptyJobPosition],
+      });
     } else {
-      setFirstName('');
-      setMiddleName('');
-      setLastName('');
-      setDateOfBirth('');
-      setJobName('');
-      setSalary('');
+      setForm({
+        firstName: "",
+        middleName: "",
+        lastName: "",
+        dateOfBirth: "",
+        gender: "",
+        address: "",
+        jobPositions: [emptyJobPosition],
+      });
     }
   }, [initialData]);
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleJobChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({
+      ...prev,
+      jobPositions: [{ ...prev.jobPositions[0], [name]: value }],
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (
-      !firstName.trim() ||
-      !lastName.trim() ||
-      !dateOfBirth.trim() ||
-      !jobName.trim() ||
-      salary === ''
-    ) {
-      alert('Semua field wajib diisi!');
-      return;
-    }
-
-    const employeePayload = {
-      firstName: firstName.trim(),
-      middleName: middleName.trim(),
-      lastName: lastName.trim(),
-      dateOfBirth,
-      jobPositions: [
-        {
-          jobName: jobName.trim(),
-          salary: Number(salary),
-          startDate: new Date().toISOString(), // bisa kamu ubah sesuai kebutuhan
-          endDate: new Date().toISOString(),   // placeholder, sesuaikan kalau perlu
-          status: 'active', // contoh status
-        },
-      ],
-    };
-
-    onSubmit(employeePayload);
+    onSubmit(form);
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white p-6 rounded-md shadow-md max-w-md mx-auto mb-8"
-      aria-label="Form karyawan"
-    >
-      <h2 className="text-xl font-semibold mb-4">{initialData ? 'Edit Karyawan' : 'Tambah Karyawan'}</h2>
-
-      <label className="block mb-3">
-        <span className="block text-gray-700 mb-1">First Name</span>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <label className="block">
+        <span className="text-gray-700 font-medium">First Name *</span>
         <input
           type="text"
-          className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
-          placeholder="First Name"
+          name="firstName"
+          value={form.firstName}
+          onChange={handleChange}
           disabled={loading}
           required
+          className="mt-1 block w-full rounded-md border border-gray-300 p-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          autoComplete="given-name"
         />
       </label>
 
-      <label className="block mb-3">
-        <span className="block text-gray-700 mb-1">Middle Name</span>
+      <label className="block">
+        <span className="text-gray-700 font-medium">Middle Name</span>
         <input
           type="text"
-          className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          value={middleName}
-          onChange={(e) => setMiddleName(e.target.value)}
-          placeholder="Middle Name (optional)"
+          name="middleName"
+          value={form.middleName}
+          onChange={handleChange}
           disabled={loading}
+          className="mt-1 block w-full rounded-md border border-gray-300 p-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          autoComplete="additional-name"
         />
       </label>
 
-      <label className="block mb-3">
-        <span className="block text-gray-700 mb-1">Last Name</span>
+      <label className="block">
+        <span className="text-gray-700 font-medium">Last Name *</span>
         <input
           type="text"
-          className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
-          placeholder="Last Name"
+          name="lastName"
+          value={form.lastName}
+          onChange={handleChange}
           disabled={loading}
           required
+          className="mt-1 block w-full rounded-md border border-gray-300 p-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          autoComplete="family-name"
         />
       </label>
 
-      <label className="block mb-3">
-        <span className="block text-gray-700 mb-1">Date of Birth</span>
+      <label className="block">
+        <span className="text-gray-700 font-medium">Date of Birth *</span>
         <input
           type="date"
-          className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          value={dateOfBirth}
-          onChange={(e) => setDateOfBirth(e.target.value)}
+          name="dateOfBirth"
+          value={form.dateOfBirth}
+          onChange={handleChange}
           disabled={loading}
           required
+          className="mt-1 block w-full rounded-md border border-gray-300 p-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          max={new Date().toISOString().slice(0, 10)}
         />
       </label>
 
-      <label className="block mb-3">
-        <span className="block text-gray-700 mb-1">Job Name</span>
-        <input
-          type="text"
-          className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          value={jobName}
-          onChange={(e) => setJobName(e.target.value)}
-          placeholder="Job Position"
+      <label className="block">
+        <span className="text-gray-700 font-medium">Gender *</span>
+        <select
+          name="gender"
+          value={form.gender}
+          onChange={handleChange}
           disabled={loading}
           required
+          className="mt-1 block w-full rounded-md border border-gray-300 p-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+        >
+          <option value="">-- Pilih --</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </label>
+
+      <label className="block">
+        <span className="text-gray-700 font-medium">Address *</span>
+        <textarea
+          name="address"
+          value={form.address}
+          onChange={handleChange}
+          disabled={loading}
+          required
+          rows={3}
+          className="mt-1 block w-full rounded-md border border-gray-300 p-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+        />
+      </label>
+
+      <h3 className="text-lg font-semibold text-gray-800 mt-6 mb-2">Job Position</h3>
+
+      <label className="block">
+        <span className="text-gray-700 font-medium">Job Name *</span>
+        <input
+          type="text"
+          name="jobName"
+          value={form.jobPositions[0].jobName}
+          onChange={handleJobChange}
+          disabled={loading}
+          required
+          className="mt-1 block w-full rounded-md border border-gray-300 p-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+        />
+      </label>
+
+      <label className="block">
+        <span className="text-gray-700 font-medium">Start Date *</span>
+        <input
+          type="date"
+          name="startDate"
+          value={form.jobPositions[0].startDate}
+          onChange={handleJobChange}
+          disabled={loading}
+          required
+          className="mt-1 block w-full rounded-md border border-gray-300 p-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+        />
+      </label>
+
+      <label className="block">
+        <span className="text-gray-700 font-medium">End Date</span>
+        <input
+          type="date"
+          name="endDate"
+          value={form.jobPositions[0].endDate}
+          onChange={handleJobChange}
+          disabled={loading}
+          className="mt-1 block w-full rounded-md border border-gray-300 p-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          min={form.jobPositions[0].startDate}
+        />
+      </label>
+
+      <label className="block">
+        <span className="text-gray-700 font-medium">Salary *</span>
+        <input
+          type="number"
+          name="salary"
+          min={0}
+          value={form.jobPositions[0].salary}
+          onChange={handleJobChange}
+          disabled={loading}
+          required
+          className="mt-1 block w-full rounded-md border border-gray-300 p-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
         />
       </label>
 
       <label className="block mb-6">
-        <span className="block text-gray-700 mb-1">Salary</span>
+        <span className="text-gray-700 font-medium">Status *</span>
         <input
-          type="number"
-          className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          value={salary}
-          onChange={(e) => setSalary(e.target.value)}
-          placeholder="Salary"
+          type="text"
+          name="status"
+          value={form.jobPositions[0].status}
+          onChange={handleJobChange}
           disabled={loading}
           required
-          min={0}
+          className="mt-1 block w-full rounded-md border border-gray-300 p-2 focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
         />
       </label>
 
@@ -153,18 +216,18 @@ export default function EmployeeForm({ onSubmit, onCancel, initialData, loading 
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-100"
             disabled={loading}
+            className="rounded border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             Batal
           </button>
         )}
         <button
           type="submit"
-          className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50"
           disabled={loading}
+          className="rounded bg-indigo-600 px-6 py-2 font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
-          {loading ? 'Memproses...' : initialData ? 'Update' : 'Tambah'}
+          {loading ? (initialData ? "Memperbarui..." : "Menambah...") : (initialData ? "Update" : "Tambah")}
         </button>
       </div>
     </form>
